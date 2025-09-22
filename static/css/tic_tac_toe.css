@@ -1,0 +1,385 @@
+/* Tic-Tac-Toe specific styles */
+
+.game-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.game-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.game-title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+.game-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Toggle buttons for first player selection */
+.first-player-toggle {
+    display: flex;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius);
+    padding: 4px;
+    gap: 4px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.toggle-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: calc(var(--border-radius) - 2px);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 100px;
+    font-weight: 500;
+}
+
+.toggle-btn:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.toggle-btn.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+    animation: glow 2s ease-in-out infinite;
+}
+
+/* Glow animation for active toggle */
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 255, 255, 0.3);
+    }
+}
+
+/* Fix dropdown styling in dark mode */
+.difficulty-select {
+    padding: 0.5rem 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--border-radius);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 0.875rem;
+    backdrop-filter: blur(10px);
+    min-width: 120px;
+}
+
+.difficulty-select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Fix dropdown options in dark mode */
+.difficulty-select option {
+    background: var(--card-background);
+    color: var(--text-color);
+    padding: 0.5rem;
+}
+
+/* Dark mode specific fixes */
+[data-theme="dark"] .difficulty-select {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+[data-theme="dark"] .difficulty-select option {
+    background: #1e293b;
+    color: #f8fafc;
+}
+
+.game-status {
+    padding: 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.status-message {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.status-message.winner {
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+.status-message.draw {
+    color: var(--warning-color);
+    font-weight: bold;
+}
+
+.turn-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.current-player {
+    padding: 0.25rem 0.75rem;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Game board */
+.game-board {
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    background: var(--background-color);
+}
+
+.board-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 4px;
+    background: var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 4px;
+    max-width: 300px;
+    width: 100%;
+    aspect-ratio: 1;
+}
+
+.cell {
+    background: var(--card-background);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    min-height: 80px;
+    border: 1px solid transparent;
+}
+
+.cell:hover:not(.occupied):not(.disabled) {
+    background: var(--background-color);
+    transform: scale(1.02);
+    border-color: var(--primary-color);
+}
+
+.cell.occupied {
+    cursor: not-allowed;
+}
+
+.cell.disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.cell.x {
+    color: var(--primary-color);
+    animation: cellFadeIn 0.3s ease-in-out;
+}
+
+.cell.o {
+    color: var(--danger-color);
+    animation: cellFadeIn 0.3s ease-in-out;
+}
+
+.cell.winning {
+    background: linear-gradient(135deg, var(--success-color), #059669) !important;
+    color: white !important;
+    animation: winningCell 0.5s ease-in-out;
+}
+
+@keyframes cellFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes winningCell {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Game info */
+.game-info {
+    padding: 1.5rem 2rem 2rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--background-color);
+}
+
+.score-board {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+}
+
+.score-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 1rem;
+    background: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    min-width: 80px;
+}
+
+.score-item .label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.score-item span:last-child {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* Responsive design for mobile */
+@media (max-width: 768px) {
+    .game-container {
+        margin: 1rem;
+        border-radius: var(--border-radius);
+    }
+    
+    .game-header {
+        padding: 1.5rem;
+    }
+    
+    .game-title {
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .game-controls {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .first-player-toggle {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .toggle-btn {
+        flex: 1;
+    }
+    
+    .difficulty-select {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .game-board {
+        padding: 1rem;
+    }
+    
+    .board-grid {
+        max-width: 250px;
+    }
+    
+    .cell {
+        font-size: 2rem;
+        min-height: 60px;
+    }
+    
+    .game-info {
+        padding: 1rem;
+    }
+    
+    .score-board {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .score-item {
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 0.75rem;
+        background: var(--card-background);
+        border-radius: var(--border-radius);
+    }
+    
+    .score-item span:last-child {
+        font-size: 1.25rem;
+    }
+}
+
+/* Animation for AI thinking */
+.ai-thinking .cell:not(.occupied) {
+    animation: aiThinking 1.5s ease-in-out infinite;
+}
+
+@keyframes aiThinking {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+        background: rgba(59, 130, 246, 0.1);
+    }
+}
+
+/* Additional loading states */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    color: white;
+}
+
+.loading-overlay p {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+}

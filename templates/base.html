@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Game Hub{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <a href="{{ url_for('dashboard') }}">🎮 Game Hub</a>
+            </h1>
+            <nav class="nav">
+                <div class="theme-toggle">
+                <input type="checkbox" id="theme-switch" class="theme-switch">
+                <label for="theme-switch" class="theme-label">🌙</label>
+                </div>
+                <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        {% block content %}{% endblock %}
+    </main>
+
+      {% block extra_js %}
+    <script>
+// Theme toggle functionality
+const themeSwitch = document.getElementById('theme-switch');
+const themeLabel = document.querySelector('.theme-label');
+
+// Load saved theme
+const savedTheme = localStorage.getItem('theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+themeSwitch.checked = savedTheme === 'dark';
+themeLabel.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+// Toggle theme
+themeSwitch.addEventListener('change', function() {
+    const theme = this.checked ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    themeLabel.textContent = theme === 'dark' ? '☀️' : '🌙';
+});
+</script>
+{% endblock %}
+</body>
+</html>
