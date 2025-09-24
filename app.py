@@ -1,48 +1,54 @@
-## app.py
 """
-Flask Game Hub - Main Application
-A modular game platform with pluggable game modules.
+Main Flask Application
 """
+import os
+import sys
+
+# Add the current directory to Python path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from flask import Flask, render_template
-from games.tic_tac_toe.blueprint import tic_tac_toe_bp
 
-def create_app():
-    """Create and configure the Flask application."""
-    app = Flask(__name__)
-    app.config.from_object('config.Config')
-    
-    # Register game blueprints
-    app.register_blueprint(tic_tac_toe_bp, url_prefix='/tic-tac-toe')
-    
-    @app.route('/')
-    def dashboard():
-        """Main dashboard showing available games."""
-        games = [
-            {
-                'name': 'Tic-Tac-Toe',
-                'description': 'Classic 3x3 grid game with AI opponent',
-                'url': '/tic-tac-toe/play',
-                'available': True,
-                'image': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzMzNzNkYyIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+WCBPPC90ZXh0Pjwvc3ZnPg=='
-            },
-            {
-                'name': 'Connect-4',
-                'description': 'Drop pieces to connect four in a row',
-                'url': '#',
-                'available': False,
-                'image': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzZiNzI4MCIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE2IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U29vbjwvdGV4dD48L3N2Zz4='
-            }
-        ]
-        return render_template('dashboard.html', games=games)
-    
-    @app.errorhandler(404)
-    def not_found(error):
-        """Handle 404 errors."""
-        return render_template('dashboard.html', error="Page not found"), 404
-    
-    return app
+# Create Flask app
+app = Flask(__name__)
+app.secret_key = 'kzdnfsneksnoefsdnfsdnfsinfj'
+
+# Import and register blueprints
+try:
+    from games.connect4 import connect4_bp
+    app.register_blueprint(connect4_bp)
+    print("Connect-4 blueprint registered successfully!")
+except ImportError as e:
+    print(f"Error importing connect4 blueprint: {e}")
+
+try:
+    from games.tic_tac_toe import tic_tac_toe_bp
+    app.register_blueprint(tic_tac_toe_bp)
+    print("TicTacToe blueprint registered successfully!")
+except ImportError as e:
+    print(f"Error importing TicTacToe blueprint: {e}")
+
+@app.route('/')
+def dashboard():
+    """Main dashboard showing available games."""
+    games = [
+        {
+            'name': 'Tic-Tac-Toe',
+            'description': 'Classic 3x3 grid game with AI opponent',
+            'url': '/tic-tac-toe/play',
+            'available': True
+        },
+        {
+            'name': 'Connect-4',
+            'description': 'Drop pieces to connect four in a row',
+            'url': '/connect4/play',
+            'available': True
+        }
+    ]
+    return render_template('dashboard.html', games=games)
 
 if __name__ == '__main__':
-    app = create_app()
+    print("Starting Flask application...")
+    print(f"Python path: {sys.path[0]}")
+    print(f"Current directory: {os.getcwd()}")
     app.run(debug=True, host='0.0.0.0', port=5000)

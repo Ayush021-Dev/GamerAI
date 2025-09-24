@@ -2,8 +2,9 @@ from flask import Blueprint, render_template, request, jsonify, session
 import random
 from .minimax import MinimaxAI
 from .engine import TicTacToeEngine
+from . import tic_tac_toe_bp
 
-tic_tac_toe_bp = Blueprint('tic_tac_toe', __name__, url_prefix='/tic-tac-toe')
+# tic_tac_toe_bp = Blueprint('tic_tac_toe', __name__, url_prefix='/tic-tac-toe')
 
 @tic_tac_toe_bp.route('/play')
 def play():
