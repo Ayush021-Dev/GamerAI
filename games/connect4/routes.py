@@ -1,5 +1,5 @@
 """
-Connect-4 Flask Routes
+Connect-4 Flask Routes with Human vs Human Support
 """
 from flask import render_template, request, jsonify, session
 from . import connect4_bp
@@ -16,6 +16,7 @@ def connect4_game():
     session['connect4_game_over'] = False
     session['connect4_turn'] = PLAYER
     session['connect4_winner'] = None
+    session['connect4_game_mode'] = 'ai'  # 'ai' or 'human'
     return render_template('connect4/play.html')
 
 @connect4_bp.route('/api/make_move', methods=['POST'])
@@ -24,9 +25,11 @@ def make_move():
         data = request.get_json()
         col = int(data.get('column', -1))
         difficulty = data.get('difficulty', 'medium')
+        game_mode = session.get('connect4_game_mode', 'ai')
         
         board = session.get('connect4_board', create_board())
         game_over = session.get('connect4_game_over', False)
+        current_turn = session.get('connect4_turn', PLAYER)
         
         if game_over or not is_valid_location(board, col):
             return jsonify({
@@ -34,7 +37,7 @@ def make_move():
                 'message': 'Invalid move or game is over'
             })
         
-        # Player move
+        # Current player move
         row = get_next_open_row(board, col)
         if row == -1:
             return jsonify({
@@ -42,19 +45,20 @@ def make_move():
                 'message': 'Column is full'
             })
         
-        drop_piece(board, row, col, PLAYER)
+        drop_piece(board, row, col, current_turn)
         
-        # Check for player win
-        if winning_move(board, PLAYER):
+        # Check for win
+        if winning_move(board, current_turn):
             session['connect4_board'] = board
             session['connect4_game_over'] = True
-            session['connect4_winner'] = 'player'
+            winner = 'player' if current_turn == PLAYER else ('player2' if game_mode == 'human' else 'ai')
+            session['connect4_winner'] = winner
             return jsonify({
                 'success': True,
                 'board': board,
-                'winner': 'player',
+                'winner': winner,
                 'game_over': True,
-                'message': 'You win!'
+                'message': f'{"Player 1" if current_turn == PLAYER else "Player 2"} wins!' if game_mode == 'human' else ('You win!' if winner == 'player' else 'AI wins!')
             })
         
         # Check for draw
@@ -70,7 +74,21 @@ def make_move():
                 'message': 'It\'s a draw!'
             })
         
-        # AI move
+        # Human vs Human mode - just switch turns
+        if game_mode == 'human':
+            session['connect4_turn'] = AI if current_turn == PLAYER else PLAYER
+            session['connect4_board'] = board
+            next_player = 'Player 2' if current_turn == PLAYER else 'Player 1'
+            return jsonify({
+                'success': True,
+                'board': board,
+                'winner': None,
+                'game_over': False,
+                'message': f'{next_player}\'s turn',
+                'current_turn': AI if current_turn == PLAYER else PLAYER
+            })
+        
+        # AI mode - make AI move
         ai_col = get_best_move(board, difficulty)
         if ai_col is not None:
             ai_row = get_next_open_row(board, ai_col)
@@ -127,21 +145,26 @@ def new_game():
         data = request.get_json()
         ai_first = data.get('ai_first', False)
         difficulty = data.get('difficulty', 'medium')
+        game_mode = data.get('game_mode', 'ai')  # 'ai' or 'human'
         
         board = create_board()
         session['connect4_board'] = board
         session['connect4_game_over'] = False
         session['connect4_winner'] = None
+        session['connect4_game_mode'] = game_mode
         session['connect4_turn'] = AI if ai_first else PLAYER
         
         response_data = {
             'success': True,
             'board': board,
             'ai_first': ai_first,
-            'message': 'AI\'s turn' if ai_first else 'Your turn'
+            'game_mode': game_mode,
+            'current_turn': AI if ai_first else PLAYER,
+            'message': 'Player 2\'s turn' if (game_mode == 'human' and ai_first) else ('Player 1\'s turn' if game_mode == 'human' else ('AI\'s turn' if ai_first else 'Your turn'))
         }
         
-        if ai_first:
+        # Only make AI move if in AI mode and AI goes first
+        if game_mode == 'ai' and ai_first:
             ai_col = get_best_move(board, difficulty)
             if ai_col is not None:
                 ai_row = get_next_open_row(board, ai_col)

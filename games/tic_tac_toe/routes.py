@@ -4,7 +4,112 @@ from .minimax import MinimaxAI
 from .engine import TicTacToeEngine
 from . import tic_tac_toe_bp
 
-# tic_tac_toe_bp = Blueprint('tic_tac_toe', __name__, url_prefix='/tic-tac-toe')
+# Note: The original file did not include the check_winner, is_board_full, 
+# and get_smart_fallback_move utility functions, but they were implicitly 
+# used in the original routes.py snippet. For a complete, working file, 
+# I will include them here based on the functions provided in your prompt.
+
+# --- UTILITY FUNCTIONS FROM YOUR PROMPT ---
+
+def check_winner(board):
+    """Check if there's a winner - works with None values"""
+    # Check rows
+    for row in board:
+        if row[0] and row[0] == row[1] == row[2]:
+            return row[0]
+    
+    # Check columns
+    for col in range(3):
+        if board[0][col] and board[0][col] == board[1][col] == board[2][col]:
+            return board[0][col]
+    
+    # Check diagonals
+    if board[0][0] and board[0][0] == board[1][1] == board[2][2]:
+        return board[0][0]
+    
+    if board[0][2] and board[0][2] == board[1][1] == board[2][0]:
+        return board[0][2]
+    
+    return None
+
+def check_winner_internal(board):
+    """Internal winner checker for string-based board."""
+    # Check rows
+    for row in board:
+        if row[0] == row[1] == row[2] != '':
+            return row[0]
+    
+    # Check columns
+    for col in range(3):
+        if board[0][col] == board[1][col] == board[2][col] != '':
+            return board[0][col]
+    
+    # Check diagonals
+    if board[0][0] == board[1][1] == board[2][2] != '':
+        return board[0][0]
+    
+    if board[0][2] == board[1][1] == board[2][0] != '':
+        return board[0][2]
+    
+    return None
+
+def is_board_full(board):
+    """Check if board is full"""
+    for row in board:
+        for cell in row:
+            if cell is None:
+                return False
+    return True
+
+def get_smart_fallback_move(board):
+    """Smart fallback AI that checks for wins and blocks."""
+    # Convert None to empty string for easier processing
+    b = []
+    for row in board:
+        b_row = []
+        for cell in row:
+            b_row.append(cell if cell is not None else '')
+        b.append(b_row)
+    
+    # First, try to win
+    for row in range(3):
+        for col in range(3):
+            if b[row][col] == '':
+                b[row][col] = 'O'
+                if check_winner_internal(b) == 'O':
+                    return (row, col)
+                b[row][col] = ''
+    
+    # Then, try to block opponent
+    for row in range(3):
+        for col in range(3):
+            if b[row][col] == '':
+                b[row][col] = 'X'
+                if check_winner_internal(b) == 'X':
+                    b[row][col] = ''
+                    return (row, col)
+                b[row][col] = ''
+    
+    # Take center if available
+    if b[1][1] == '':
+        return (1, 1)
+    
+    # Take corners
+    corners = [(0, 0), (0, 2), (2, 0), (2, 2)]
+    for row, col in corners:
+        if b[row][col] == '':
+            return (row, col)
+    
+    # Take any remaining spot
+    for row in range(3):
+        for col in range(3):
+            if b[row][col] == '':
+                return (row, col)
+    
+    return None
+
+# --- END UTILITY FUNCTIONS ---
+
 
 @tic_tac_toe_bp.route('/play')
 def play():
@@ -25,15 +130,18 @@ def get_state():
                 'game_over': False,
                 'winner': None
             },
-            'difficulty': 'medium'
+            'difficulty': 'medium',
+            'game_mode': 'pve' # New: Default game mode
         })
     
     difficulty = session.get('tic_tac_toe_difficulty', 'medium')
+    game_mode = session.get('tic_tac_toe_game_mode', 'pve') # New: Get game mode
     
     return jsonify({
         'success': True,
         'state': state,
-        'difficulty': difficulty
+        'difficulty': difficulty,
+        'game_mode': game_mode # New: Return game mode
     })
 
 @tic_tac_toe_bp.route('/api/new', methods=['POST'])
@@ -41,24 +149,35 @@ def new_game():
     """Start a new game"""
     data = request.get_json()
     difficulty = data.get('difficulty', 'medium')
-    first_player = data.get('first_player', 'human')  # Add this line
+    first_player = data.get('first_player', 'human')
+    game_mode = data.get('game_mode', 'pve') # New: Get game mode
+    
+    # Determine the starting player
+    # X is always the first player to start the board. 
+    # In PVE, if 'ai' is first, current_player becomes 'O'.
+    # In PVP, 'X' always starts.
+    start_player = 'X'
+    if game_mode == 'pve' and first_player == 'ai':
+        start_player = 'O'
     
     # Initialize new game state
     state = {
         'board': [[None, None, None], [None, None, None], [None, None, None]],
-        'current_player': 'X' if first_player == 'human' else 'O',  # Modify this line
+        'current_player': start_player,
         'game_over': False,
         'winner': None
     }
     
     session['tic_tac_toe_state'] = state
     session['tic_tac_toe_difficulty'] = difficulty
-    session['first_player'] = first_player  # Add this line
+    session['first_player'] = first_player
+    session['tic_tac_toe_game_mode'] = game_mode # New: Store game mode
     
     return jsonify({
         'success': True,
         'state': state,
-        'ai_should_move': first_player == 'ai'  # Add this line
+        # AI should only move if it's PVE mode AND the AI is the first player
+        'ai_should_move': (game_mode == 'pve' and first_player == 'ai')
     })
 
 @tic_tac_toe_bp.route('/api/move', methods=['POST'])
@@ -69,6 +188,8 @@ def make_move():
     col = data.get('col')
     
     state = session.get('tic_tac_toe_state')
+    game_mode = session.get('tic_tac_toe_game_mode', 'pve') # New: Get game mode
+    
     if not state:
         return jsonify({'success': False, 'error': 'No active game'})
     
@@ -91,8 +212,18 @@ def make_move():
         state['game_over'] = True
         state['winner'] = None
     else:
+        # Switch players
         state['current_player'] = 'O' if state['current_player'] == 'X' else 'X'
-    
+        
+        # New: If in PvP mode, we are done. Skip AI move.
+        if game_mode == 'pvp':
+            session['tic_tac_toe_state'] = state
+            return jsonify({
+                'success': True,
+                'state': state,
+                'ai_should_move': False
+            })
+            
     session['tic_tac_toe_state'] = state
     
     return jsonify({
@@ -105,16 +236,17 @@ def ai_move():
     """Handle AI move using minimax algorithm"""
     state = session.get('tic_tac_toe_state')
     difficulty = session.get('tic_tac_toe_difficulty', 'medium')
+    game_mode = session.get('tic_tac_toe_game_mode', 'pve')
     
     print(f"\n=== AI MOVE DEBUG ===")
-    print(f"Difficulty: {difficulty}")
+    print(f"Game Mode: {game_mode}, Difficulty: {difficulty}")
     print(f"Current state: {state}")
     
     if not state:
         return jsonify({'success': False, 'error': 'No active game'})
     
-    if state['game_over'] or state['current_player'] != 'O':
-        return jsonify({'success': False, 'error': 'Not AI turn'})
+    if state['game_over'] or state['current_player'] != 'O' or game_mode == 'pvp': # Added pvp check as a safety
+        return jsonify({'success': False, 'error': 'Not AI turn or incorrect mode'})
     
     try:
         # Create engine from current state
@@ -210,100 +342,3 @@ def ai_move():
             'success': True,
             'state': state
         })
-
-def get_smart_fallback_move(board):
-    """Smart fallback AI that checks for wins and blocks."""
-    # Convert None to empty string for easier processing
-    b = []
-    for row in board:
-        b_row = []
-        for cell in row:
-            b_row.append(cell if cell is not None else '')
-        b.append(b_row)
-    
-    # First, try to win
-    for row in range(3):
-        for col in range(3):
-            if b[row][col] == '':
-                b[row][col] = 'O'
-                if check_winner_internal(b) == 'O':
-                    return (row, col)
-                b[row][col] = ''
-    
-    # Then, try to block opponent
-    for row in range(3):
-        for col in range(3):
-            if b[row][col] == '':
-                b[row][col] = 'X'
-                if check_winner_internal(b) == 'X':
-                    b[row][col] = ''
-                    return (row, col)
-                b[row][col] = ''
-    
-    # Take center if available
-    if b[1][1] == '':
-        return (1, 1)
-    
-    # Take corners
-    corners = [(0, 0), (0, 2), (2, 0), (2, 2)]
-    for row, col in corners:
-        if b[row][col] == '':
-            return (row, col)
-    
-    # Take any remaining spot
-    for row in range(3):
-        for col in range(3):
-            if b[row][col] == '':
-                return (row, col)
-    
-    return None
-
-def check_winner_internal(board):
-    """Internal winner checker for string-based board."""
-    # Check rows
-    for row in board:
-        if row[0] == row[1] == row[2] != '':
-            return row[0]
-    
-    # Check columns
-    for col in range(3):
-        if board[0][col] == board[1][col] == board[2][col] != '':
-            return board[0][col]
-    
-    # Check diagonals
-    if board[0][0] == board[1][1] == board[2][2] != '':
-        return board[0][0]
-    
-    if board[0][2] == board[1][1] == board[2][0] != '':
-        return board[0][2]
-    
-    return None
-
-def check_winner(board):
-    """Check if there's a winner - works with None values"""
-    # Check rows
-    for row in board:
-        if row[0] and row[0] == row[1] == row[2]:
-            return row[0]
-    
-    # Check columns
-    for col in range(3):
-        if board[0][col] and board[0][col] == board[1][col] == board[2][col]:
-            return board[0][col]
-    
-    # Check diagonals
-    if board[0][0] and board[0][0] == board[1][1] == board[2][2]:
-        return board[0][0]
-    
-    if board[0][2] and board[0][2] == board[1][1] == board[2][0]:
-        return board[0][2]
-    
-    return None
-
-def is_board_full(board):
-    """Check if board is full"""
-    for row in board:
-        for cell in row:
-            if cell is None:
-                return False
-    return True

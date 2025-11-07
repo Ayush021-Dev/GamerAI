@@ -12,28 +12,38 @@
         <div class="game-header">
             <h2 class="game-title">Tic-Tac-Toe</h2>
             <div class="game-controls">
-                <!-- Toggle buttons for first player selection -->
                 <div class="first-player-toggle">
-                    <button id="human-first-btn" class="toggle-btn active" data-value="human">
-                        You First (X)
+                    <button id="pve-mode-btn" class="toggle-btn active" data-value="pve">
+                        VS Bot
                     </button>
-                    <button id="ai-first-btn" class="toggle-btn" data-value="ai">
-                        AI First (O)
+                    <button id="pvp-mode-btn" class="toggle-btn" data-value="pvp">
+                        VS Human
                     </button>
                 </div>
-                
-                <select id="difficulty-select" class="difficulty-select">
-                    <option value="easy">Easy</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="hard">Hard</option>
-                </select>
+
+                <div id="pve-controls" class="game-controls" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div class="first-player-toggle">
+                        <button id="human-first-btn" class="toggle-btn active" data-value="human">
+                            You First (X)
+                        </button>
+                        <button id="ai-first-btn" class="toggle-btn" data-value="ai">
+                            Bot First (O)
+                        </button>
+                    </div>
+                    
+                    <select id="difficulty-select" class="difficulty-select">
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
                 
                 <button id="new-game-btn" class="btn btn-primary">New Game</button>
             </div>
         </div>
 
         <div class="game-status">
-            <div id="status-message" class="status-message">Choose difficulty and start a new game!</div>
+            <div id="status-message" class="status-message">Choose mode/difficulty and start a new game!</div>
             <div id="turn-indicator" class="turn-indicator" style="display: none;">
                 <span class="current-player">Your turn</span>
             </div>
@@ -52,11 +62,11 @@
         <div class="game-info">
             <div class="score-board">
                 <div class="score-item">
-                    <span class="label">You (X):</span>
+                    <span id="human-score-label" class="label">You (X):</span>
                     <span id="human-score">0</span>
                 </div>
                 <div class="score-item">
-                    <span class="label">AI (O):</span>
+                    <span id="ai-score-label" class="label">Bot (O):</span>
                     <span id="ai-score">0</span>
                 </div>
                 <div class="score-item">
@@ -68,10 +78,9 @@
     </div>
 </div>
 
-<!-- Loading overlay -->
 <div id="loading-overlay" class="loading-overlay" style="display: none;">
     <div class="loading-spinner"></div>
-    <p>AI is thinking...</p>
+    <p>Bot is thinking...</p>
 </div>
 {% endblock %}
 
