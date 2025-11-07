@@ -4,16 +4,13 @@ Main Flask Application
 import os
 import sys
 
-# Add the current directory to Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for
 
-# Create Flask app
 app = Flask(__name__)
 app.secret_key = 'kzdnfsneksnoefsdnfsdnfsinfj'
 
-# Import and register blueprints
 try:
     from games.connect4 import connect4_bp
     app.register_blueprint(connect4_bp)
@@ -34,18 +31,21 @@ def dashboard():
     games = [
         {
             'name': 'Tic-Tac-Toe',
-            'description': 'Classic 3x3 grid game with AI opponent',
+            'description': 'Classic 3x3 grid Tic-Tac-Toe game',
             'url': '/tic-tac-toe/play',
-            'available': True
+            'available': True,
+            'image': url_for('static', filename='images/tictactoe.png')
         },
         {
             'name': 'Connect-4',
             'description': 'Drop pieces to connect four in a row',
             'url': '/connect4/play',
-            'available': True
+            'available': True,
+            'image': url_for('static', filename='images/connect4.png')
         }
     ]
     return render_template('dashboard.html', games=games)
+
 
 if __name__ == '__main__':
     print("Starting Flask application...")

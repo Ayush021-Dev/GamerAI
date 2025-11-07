@@ -1,16 +1,15 @@
 {% extends "base.html" %}
-
 {% block title %}Dashboard - Game Hub{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="dashboard">
         <h2 class="dashboard-title">Available Games</h2>
-        
+
         {% if error %}
         <div class="error-message">{{ error }}</div>
         {% endif %}
-        
+
         <div class="games-grid">
             {% for game in games %}
             <div class="game-card {% if not game.available %}disabled{% endif %}">
