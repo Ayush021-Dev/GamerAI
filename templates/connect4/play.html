@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+
+{% block title %}Connect-4 - Game Hub{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="game-header">
+        <h1 class="game-title">Connect-4</h1>
+        
+        <div class="game-controls">
+            <div class="player-options">
+                <button id="human-first" class="btn btn-option active">You First (🟡)</button>
+                <button id="ai-first" class="btn btn-option">AI First (🔴)</button>
+            </div>
+            
+            <div class="difficulty-section">
+                <select id="difficulty" class="difficulty-dropdown">
+                    <option value="easy">Easy</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+            
+            <button id="new-game" class="btn btn-primary">New Game</button>
+        </div>
+        
+        <div class="game-message" id="game-message">
+            Choose difficulty and start a new game!
+        </div>
+    </div>
+    
+    <div class="board-container">
+        <div id="connect4-board" class="connect4-board"></div>
+    </div>
+    
+    <div class="score-section">
+        <div class="score-item">
+            <div class="score-label">You (🟡):</div>
+            <div class="score-value" id="player-score">0</div>
+        </div>
+        <div class="score-item">
+            <div class="score-label">AI (🔴):</div>
+            <div class="score-value" id="ai-score">0</div>
+        </div>
+        <div class="score-item">
+            <div class="score-label">Draws:</div>
+            <div class="score-value" id="draw-score">0</div>
+        </div>
+    </div>
+</div>
+
+<style>
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.game-header {
+    background: linear-gradient(135deg, #4f9cf9 0%, #6366f1 100%);
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.game-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0 0 25px 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.game-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.player-options {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.btn-option {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid transparent;
+}
+
+.btn-option.active {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-option:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.difficulty-dropdown {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.game-message {
+    font-size: 1.1rem;
+    font-weight: 500;
+    opacity: 0.9;
+    margin-top: 15px;
+}
+
+.board-container {
+    display: flex;
+    justify-content: center;
+    margin: 30px 0;
+}
+
+.connect4-board {
+    display: grid;
+    grid-template-columns: repeat(7, 70px);
+    grid-template-rows: repeat(6, 70px);
+    gap: 8px;
+    padding: 20px;
+    background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.connect4-cell {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.connect4-cell:hover {
+    background: #e2e8f0;
+    transform: scale(1.05);
+}
+
+.connect4-cell.player {
+    background: radial-gradient(circle, #fbbf24 0%, #f59e0b 100%);
+    border-color: #d97706;
+    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+}
+
+.connect4-cell.ai {
+    background: radial-gradient(circle, #ef4444 0%, #dc2626 100%);
+    border-color: #b91c1c;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+.score-section {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.score-item {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px 25px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.score-label {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 5px;
+}
+
+.score-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #4f9cf9;
+}
+</style>
+
+<script>
+let board = [];
+let gameOver = false;
+let currentPlayer = 1;
+let humanFirst = true;
+let scores = {player: 0, ai: 0, draws: 0};
+
+function initializeGame() {
+    board = Array(6).fill().map(() => Array(7).fill(0));
+    gameOver = false;
+    renderBoard();
+    updateGameMessage();
+}
+
+function renderBoard() {
+    const boardElement = document.getElementById('connect4-board');
+    boardElement.innerHTML = '';
+    
+    for (let row = 0; row < 6; row++) {
+        for (let col = 0; col < 7; col++) {
+            const cell = document.createElement('div');
+            cell.className = 'connect4-cell';
+            cell.dataset.row = row;
+            cell.dataset.col = col;
+            
+            if (board[row][col] === 1) {
+                cell.classList.add('player');
+            } else if (board[row][col] === 2) {
+                cell.classList.add('ai');
+            }
+            
+            if (row === 0 && !gameOver) {
+                cell.addEventListener('click', () => makeMove(col));
+            }
+            
+            boardElement.appendChild(cell);
+        }
+    }
+}
+
+function makeMove(col) {
+    if (gameOver) return;
+    
+    const difficulty = document.getElementById('difficulty').value;
+    
+    fetch('/connect4/api/make_move', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({column: col, difficulty: difficulty})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            board = data.board;
+            gameOver = data.game_over;
+            renderBoard();
+            
+            if (data.winner) {
+                handleGameEnd(data.winner);
+            } else {
+                updateGameMessage(data.message);
+            }
+        } else {
+            updateGameMessage(data.message || 'Error making move');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        updateGameMessage('Connection error');
+    });
+}
+
+function handleGameEnd(winner) {
+    gameOver = true;
+    if (winner === 'player') {
+        scores.player++;
+        updateGameMessage('🎉 You Win!');
+    } else if (winner === 'ai') {
+        scores.ai++;
+        updateGameMessage('🤖 AI Wins!');
+    } else {
+        scores.draws++;
+        updateGameMessage('🤝 It\'s a Draw!');
+    }
+    updateScores();
+}
+
+function updateGameMessage(message) {
+    const messageElement = document.getElementById('game-message');
+    messageElement.textContent = message || (gameOver ? 'Game Over!' : 'Your turn');
+}
+
+function updateScores() {
+    document.getElementById('player-score').textContent = scores.player;
+    document.getElementById('ai-score').textContent = scores.ai;
+    document.getElementById('draw-score').textContent = scores.draws;
+}
+
+document.getElementById('human-first').addEventListener('click', () => {
+    document.getElementById('human-first').classList.add('active');
+    document.getElementById('ai-first').classList.remove('active');
+    humanFirst = true;
+});
+
+document.getElementById('ai-first').addEventListener('click', () => {
+    document.getElementById('ai-first').classList.add('active');
+    document.getElementById('human-first').classList.remove('active');
+    humanFirst = false;
+});
+
+document.getElementById('new-game').addEventListener('click', () => {
+    const difficulty = document.getElementById('difficulty').value;
+    
+    fetch('/connect4/api/new_game', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ai_first: !humanFirst, difficulty: difficulty})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            board = data.board;
+            gameOver = false;
+            renderBoard();
+            updateGameMessage(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        updateGameMessage('Connection error');
+    });
+});
+
+initializeGame();
+</script>
+{% endblock %}
